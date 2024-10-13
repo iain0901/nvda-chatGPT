@@ -3,11 +3,13 @@ import config
 module = "askChatGPT"
 
 
+# configManager.py
+
 def initConfiguration():
     confspec = {
-        "apiKey": "string( default='')",
-        "outputLanguageIndex": "integer( default=3, min=0, max=15)",
-        "gptVersionSentenceIndex": "integer( default=0, min=0, max=3)",
+        "apiKey": "string( default='')",  # API 金鑰
+        "outputLanguageIndex": "integer( default=3, min=0, max=15)",  # 語言選擇
+        "gptVersionSentenceIndex": "integer( default=0, min=0, max=5)",  # 新增 GPT-4-32k 選項
         "dontShowCaution": "boolean( default=False)",
     }
     config.conf.spec[module] = confspec
