@@ -56,40 +56,48 @@ def createMessage(prompt: str, pastConvo: Optional[List[Message]] = None):
 
 	return messages
 
+def askChatGPT(prompt: str, conversation=None):
+    # 從配置中獲取模型版本
+    gptVersion = configManager.getConfig("gptVersionSentenceIndex")
+    
+    # 根據不同版本選擇不同的模型
+    if gptVersion == 5:
+        model = "gpt-4-32k"  # GPT-4-32k (o1)
+    elif gptVersion == 4:
+        model = "gpt-4"
+    elif gptVersion == 3:
+        model = "gpt-3.5-turbo"
+    else:
+        model = "gpt-3"
 
-def askChatGPT(prompt: str, model: str, conversation=None):
-	messages = createMessage(prompt, conversation)
+    messages = createMessage(prompt, conversation)
 
-	client = OpenAI(api_key=configManager.getConfig("apiKey"))
+    client = OpenAI(api_key=configManager.getConfig("apiKey"))
 
-	try:
-		completion = client.chat.completions.create(
-			# TODO: use the model specified in config when asking a sentence.
-			model=model,
-			# model="gpt-3.5-turbo",
-			messages=messages,
-		)
+    try:
+        completion = client.chat.completions.create(
+            model=model,  # 傳遞選擇的模型
+            messages=messages,
+        )
 
-		response = completion.choices[0].message.content
+        response = completion.choices[0].message.content
 
-	except Exception as e:
-		if e.type == "invalid_request_error":
-			messenger.emitUiBrowseableMessage(instructions.API_KEY_INCORRECT_ERROR)
-		elif e.type == "insufficient_quota":
-			messenger.emitUiBrowseableMessage(instructions.INSUFFICIENT_QUOTA_ERROR)
-		else:
-			unexpectedErrorMessage = _(
-				# Translators: Message when it encounter an unexpected error, the error itself will be shown
-				#  below this.
-				"Unexpected error occured. Please send the error message below to the add-on "
-				"author's email address, lcong5946@gmail.com \n\n "
-			)
-		messenger.emitUiBrowseableMessage(unexpectedErrorMessage + str(e))
+    except Exception as e:
+        if e.type == "invalid_request_error":
+            messenger.emitUiBrowseableMessage(instructions.API_KEY_INCORRECT_ERROR)
+        elif e.type == "insufficient_quota":
+            messenger.emitUiBrowseableMessage(instructions.INSUFFICIENT_QUOTA_ERROR)
+        else:
+            unexpectedErrorMessage = _(
+                "Unexpected error occured. Please send the error message below to the add-on "
+                "author's email address, lcong5946@gmail.com \n\n "
+            )
+        messenger.emitUiBrowseableMessage(unexpectedErrorMessage + str(e))
 
-		return
+        return
 
-	messenger.emitUiBrowseableMessage(response)
+    messenger.emitUiBrowseableMessage(response)
 
-	messages.append({"role": "assistant", "content": response})
+    messages.append({"role": "assistant", "content": response})
 
-	return messages
+    return messages
